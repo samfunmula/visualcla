@@ -4,9 +4,14 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-RUN apt update && \
-    pip install --no-cache-dir -r requirements.txt && \
+COPY setup.py .
+
+RUN apt update
+
+RUN pip install setuptools==59.6.0 && \
     pip install -e .
+
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY main .
 

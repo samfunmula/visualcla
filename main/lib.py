@@ -1,7 +1,9 @@
-import torch
+import os
+gpus = "1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = gpus
 import visualcla
 from visualcla.modeling_utils import DEFAULT_GENERATION_CONFIG
-import os
+import torch
 from PIL import Image
 from io import BytesIO
 import hashlib
@@ -9,9 +11,11 @@ from typing import Optional
 from aiohttp import ClientSession
 import base64
 from opencc import OpenCC
-
 from fastapi.responses import JSONResponse
 from dataclasses import dataclass
+
+
+image_format = ["jpg","jpeg","png","gif","bmp","tiff","tif","webp","ico"]
 
 # produce image
 async def fetch_image_base64(url: str) -> Optional[str]:
@@ -30,7 +34,7 @@ def process_image(image_encoded):
     decoded_image = base64.b64decode(image_encoded)
     image = Image.open(BytesIO(decoded_image))
     image_hash = hashlib.sha256(image.tobytes()).hexdigest()
-    image_path = f'./images/{image_hash}.png'
+    image_path = f'./images/{image_hash}.ico'
     if not os.path.isfile(image_path):
         image.save(image_path)
     return os.path.abspath(image_path)
@@ -100,7 +104,7 @@ def setmodel():
     print(type(load_type))
 
     if torch.cuda.is_available():
-            device = torch.device(0)
+            device = torch.device('cuda')
             device_map='auto'
     else:
         device = torch.device('cpu')
@@ -113,14 +117,14 @@ def setmodel():
         visualcla_model=visualcla_model,
         torch_dtype=load_type,
         default_device=device,
-        device_map=device_map
+        device_map='auto'
     )
     model = base_model
 
     if device == torch.device('cpu'):
         model.float()
     model.eval()
-    
+   
 @dataclass
 class Errors:
     UNSUPPORTED_HISTORY_FORMAT = JSONResponse({'result':'UNSUPPORTED_HISTORY_FORMAT'},400)
@@ -129,3 +133,4 @@ class Errors:
     UNSUPPORTED_IMAGE_FORMAT = JSONResponse({'result':'UNSUPPORTED_IMAGE_FORMAT'},400)
     UNSUPPORTED_LANGUAGE = JSONResponse({'result':"UNSUPPORTED_LANGUAGE"},400)
     UNSUPPORTED_INPUT_FORMAT = JSONResponse({'result':'UNSUPPORTED_INPUT_FORMAT'},400)
+    NO_SUCH_FILE_OR_DIRECTORY = JSONResponse({'result':'NO_SUCH_FILE_OR_DIRECTORY'},400)
