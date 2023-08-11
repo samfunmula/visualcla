@@ -1,13 +1,17 @@
 import uvicorn
 from fastapi import FastAPI, Request
 from lib import *
+from fastapi.exceptions import RequestValidationError
 
+
+app = FastAPI()
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return Errors.UNSUPPORTED_INPUT_FORMAT
 
 print(" ## Set Model ##")
 setmodel()
-
-app = FastAPI()
-@app.post('/')
+@app.post('/') 
 async def upload_image(request : dict , history : list[dict] = []):
     print(" ## Start to Load Input ##")
     user_input = request.get("user_input")
@@ -60,18 +64,19 @@ async def upload_image(request : dict , history : list[dict] = []):
         return Errors.NO_SUCH_FILE_OR_DIRECTORY
     
     output = predict(user_input,
-                     image_path,
-                     max_new_tokens,
-                     top_p,
-                     top_k,
-                     temperature,
-                     history)
+                    image_path,
+                    max_new_tokens,
+                    top_p,
+                    top_k,
+                    temperature,
+                    history)
     print("output:",translate(output))
     torch.cuda.empty_cache()
-    return translate(output)
+    output = translate(output)
+    return output,{"user_input": output[-2]["value"],"response" : output[-1]["value"]}
 
 
 if __name__ == '__main__' : 
     torch.cuda.empty_cache()
     import uvicorn
-    uvicorn.run(app , host = "0.0.0.0" , port=9321)
+    uvicorn.run(app , host = "0.0.0.0" , port=9456)
