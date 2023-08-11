@@ -1,5 +1,4 @@
 # Visual-Chinese-LLaMA-Alpaca
-### 記得創images資料夾
 ### Start Fast API
 ```
 cd main/
@@ -10,6 +9,10 @@ python3 api.py
 ```
 bash runDocker.sh
 ```
+
+### 模型合併
+#### 參考 https://github.com/airaria/Visual-Chinese-LLaMA-Alpaca/tree/main 的 colab
+
 ## Support fomat
 
 ### Support image

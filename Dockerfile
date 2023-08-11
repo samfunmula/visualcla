@@ -8,12 +8,11 @@ COPY setup.py .
 
 RUN apt update
 
-RUN pip install setuptools==59.6.0 && \
-    pip install -e .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY main .
+
+COPY models .
 
 EXPOSE 8000
 
